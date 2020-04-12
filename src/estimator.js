@@ -1,6 +1,6 @@
 
 function discardDecimal(value) {
-  return value > 0 ? Math.floor(value) : Math.ceil(value);
+  return Math.trunc(value);
 }
 
 function calculateDaysToElapse(periodType, timeToElapse) {
@@ -61,38 +61,33 @@ const covid19ImpactEstimator = (data) => {
   const { totalHospitalBeds } = data;
   const availableBeds = discardDecimal(0.35 * totalHospitalBeds);
 
-  const bedsByRequestedTimeImpact = availableBeds - severeCasesByRequestedTimeImpact;
-  impact.hospitalBedsByRequestedTime = bedsByRequestedTimeImpact;
+  impact.hospitalBedsByRequestedTime = availableBeds - severeCasesByRequestedTimeImpact;
+  severeImpact.hospitalBedsByRequestedTime = availableBeds - severeCasesByRequestedTimeSevere;
 
-  const bedsByRequestedTimeSevere = availableBeds - severeCasesByRequestedTimeSevere;
-  severeImpact.hospitalBedsByRequestedTime = bedsByRequestedTimeSevere;
+  impact.casesForICUByRequestedTime = discardDecimal(0.05 * infectionsByRequestedTimeImpact);
+  severeImpact.casesForICUByRequestedTime = discardDecimal(0.05 * infectionsByRequestedTimeSevere);
 
-  const casesForICUByRequestedTimeImpact = discardDecimal(0.05 * infectionsByRequestedTimeImpact);
-  impact.casesForICUByRequestedTime = casesForICUByRequestedTimeImpact;
-  const casesForICUByRequestedTimeSevere = discardDecimal(0.05 * infectionsByRequestedTimeSevere);
-  severeImpact.casesForICUByRequestedTime = casesForICUByRequestedTimeSevere;
-
-  const casesForVentilatorsImpact = discardDecimal(0.02 * infectionsByRequestedTimeImpact);
-  impact.casesForVentilatorsByRequestedTime = casesForVentilatorsImpact;
-  const casesForVentilatorsSevere = discardDecimal(0.02 * infectionsByRequestedTimeSevere);
-  severeImpact.casesForVentilatorsByRequestedTime = casesForVentilatorsSevere;
+  impact.casesForVentilatorsByRequestedTime = discardDecimal(
+    0.02 * infectionsByRequestedTimeImpact
+  );
+  severeImpact.casesForVentilatorsByRequestedTime = discardDecimal(
+    0.02 * infectionsByRequestedTimeSevere
+  );
 
   const { avgDailyIncomePopulation } = data.region;
   const { avgDailyIncomeInUSD } = data.region;
 
-  const dollarsInFlightImpact = discardDecimal(
+  impact.dollarsInFlight = discardDecimal(
     (
       infectionsByRequestedTimeImpact * avgDailyIncomePopulation * avgDailyIncomeInUSD
     ) / daysToElapse
   );
-  impact.dollarsInFlight = dollarsInFlightImpact;
 
-  const dollarsInFlightSevere = discardDecimal(
+  severeImpact.dollarsInFlight = discardDecimal(
     (
       infectionsByRequestedTimeSevere * avgDailyIncomePopulation * avgDailyIncomeInUSD
     ) / daysToElapse
   );
-  severeImpact.dollarsInFlight = dollarsInFlightSevere;
 
   toReturn.impact = impact;
   toReturn.severeImpact = severeImpact;
