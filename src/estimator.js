@@ -1,98 +1,104 @@
 
-function discardDecimal(value) {
-  return Math.trunc(value);
-}
+class Estimator {
+  constructor(data) {
+    this.reportedCases = data.reportedCases;
 
-function calculateDaysToElapse(periodType, timeToElapse) {
-  let toReturn = 0;
+    this.daysToElapse = Estimator.calculateDaysToElapse(
+      data.periodType,
+      data.timeToElapse
+    );
 
-  switch (periodType) {
-    case 'days':
-      toReturn = timeToElapse;
-      break;
+    this.factor = Estimator.discardDecimal(
+      2 ** Estimator.discardDecimal(this.daysToElapse / 3)
+    );
 
-    case 'months':
-      toReturn = timeToElapse * 30;
-      break;
+    this.totalHospitalBeds = data.totalHospitalBeds;
 
-    case 'weeks':
-      toReturn = timeToElapse * 7;
-      break;
-
-    default:
-      break;
+    this.avgDailyIncomePopulation = data.region.avgDailyIncomePopulation;
+    this.avgDailyIncomeInUSD = data.region.avgDailyIncomeInUSD;
   }
 
+  static calculateDaysToElapse(periodType, timeToElapse) {
+    let toReturn = 0;
+    switch (periodType) {
+      case 'days':
+        toReturn = timeToElapse;
+        break;
 
-  return toReturn;
+      case 'months':
+        toReturn = timeToElapse * 30;
+        break;
+
+      case 'weeks':
+        toReturn = timeToElapse * 7;
+        break;
+
+      default:
+        break;
+    }
+    return toReturn;
+  }
+
+  static discardDecimal(value) {
+    return Math.trunc(value);
+  }
+
+  estimate(by) {
+    const toReturn = {};
+
+    const currentlyInfectedImpact = Estimator.discardDecimal(this.reportedCases * by);
+    toReturn.currentlyInfected = currentlyInfectedImpact;
+
+    const infectionsByRequestedTimeImpact = currentlyInfectedImpact * this.factor;
+    toReturn.infectionsByRequestedTime = infectionsByRequestedTimeImpact;
+
+
+    const severeCasesByRequestedTimeImpact = Estimator.discardDecimal(
+      0.15 * infectionsByRequestedTimeImpact
+    );
+    toReturn.severeCasesByRequestedTime = severeCasesByRequestedTimeImpact;
+
+    const availableBeds = 0.35 * this.totalHospitalBeds;
+    toReturn.hospitalBedsByRequestedTime = Estimator.discardDecimal(
+      availableBeds - severeCasesByRequestedTimeImpact
+    );
+
+    toReturn.casesForICUByRequestedTime = Estimator.discardDecimal(
+      0.05 * infectionsByRequestedTimeImpact
+    );
+
+
+    toReturn.casesForVentilatorsByRequestedTime = Estimator.discardDecimal(
+      0.02 * infectionsByRequestedTimeImpact
+    );
+
+
+    toReturn.dollarsInFlight = Estimator.discardDecimal(
+      (
+        infectionsByRequestedTimeImpact * this.avgDailyIncomePopulation * this.avgDailyIncomeInUSD
+      ) / this.daysToElapse
+    );
+
+    return toReturn;
+  }
+
+  estimateImpact() {
+    return this.estimate(10);
+  }
+
+  estimateSevereImpact() {
+    return this.estimate(50);
+  }
 }
 
 const covid19ImpactEstimator = (data) => {
-  const toReturn = {
-    data
-    // impact: {},
-    // severeImpact: {}
+  const estimator = new Estimator(data);
+
+  return {
+    data,
+    impact: estimator.estimateImpact(),
+    severeImpact: estimator.estimateSevereImpact()
   };
-
-  const impact = {};
-  const severeImpact = {};
-
-  const { reportedCases } = data;
-
-  const currentlyInfectedImpact = discardDecimal(reportedCases * 10);
-  impact.currentlyInfected = currentlyInfectedImpact;
-  const currentlyInfectedSevere = discardDecimal(reportedCases * 50);
-  severeImpact.currentlyInfected = currentlyInfectedSevere;
-
-  const daysToElapse = calculateDaysToElapse(data.periodType, data.timeToElapse);
-
-  const factor = discardDecimal(2 ** discardDecimal(daysToElapse / 3));
-  const infectionsByRequestedTimeImpact = currentlyInfectedImpact * factor;
-  impact.infectionsByRequestedTime = infectionsByRequestedTimeImpact;
-
-  const infectionsByRequestedTimeSevere = currentlyInfectedSevere * factor;
-  severeImpact.infectionsByRequestedTime = infectionsByRequestedTimeSevere;
-
-  const severeCasesByRequestedTimeImpact = discardDecimal(0.15 * infectionsByRequestedTimeImpact);
-  impact.severeCasesByRequestedTime = severeCasesByRequestedTimeImpact;
-  const severeCasesByRequestedTimeSevere = discardDecimal(0.15 * infectionsByRequestedTimeSevere);
-  severeImpact.severeCasesByRequestedTime = severeCasesByRequestedTimeSevere;
-
-  const { totalHospitalBeds } = data;
-  const availableBeds = discardDecimal(0.35 * totalHospitalBeds);
-
-  impact.hospitalBedsByRequestedTime = availableBeds - severeCasesByRequestedTimeImpact;
-  severeImpact.hospitalBedsByRequestedTime = availableBeds - severeCasesByRequestedTimeSevere;
-
-  impact.casesForICUByRequestedTime = discardDecimal(0.05 * infectionsByRequestedTimeImpact);
-  severeImpact.casesForICUByRequestedTime = discardDecimal(0.05 * infectionsByRequestedTimeSevere);
-
-  impact.casesForVentilatorsByRequestedTime = discardDecimal(
-    0.02 * infectionsByRequestedTimeImpact
-  );
-  severeImpact.casesForVentilatorsByRequestedTime = discardDecimal(
-    0.02 * infectionsByRequestedTimeSevere
-  );
-
-  const { avgDailyIncomePopulation } = data.region;
-  const { avgDailyIncomeInUSD } = data.region;
-
-  impact.dollarsInFlight = discardDecimal(
-    (
-      infectionsByRequestedTimeImpact * avgDailyIncomePopulation * avgDailyIncomeInUSD
-    ) / daysToElapse
-  );
-
-  severeImpact.dollarsInFlight = discardDecimal(
-    (
-      infectionsByRequestedTimeSevere * avgDailyIncomePopulation * avgDailyIncomeInUSD
-    ) / daysToElapse
-  );
-
-  toReturn.impact = impact;
-  toReturn.severeImpact = severeImpact;
-
-  return toReturn;
 };
 
 export default covid19ImpactEstimator;
