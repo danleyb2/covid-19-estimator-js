@@ -1,6 +1,6 @@
 
 function discardDecimal(value) {
-  return Math.floor(value);
+  return value > 0 ? Math.floor(value) : Math.ceil(value);
 }
 
 function calculateDaysToElapse(periodType, timeToElapse) {
@@ -59,16 +59,12 @@ const covid19ImpactEstimator = (data) => {
   severeImpact.severeCasesByRequestedTime = severeCasesByRequestedTimeSevere;
 
   const { totalHospitalBeds } = data;
-  const availableBeds = 0.35 * totalHospitalBeds;
+  const availableBeds = discardDecimal(0.35 * totalHospitalBeds);
 
-  const bedsByRequestedTimeImpact = discardDecimal(
-    availableBeds - severeCasesByRequestedTimeImpact
-  );
+  const bedsByRequestedTimeImpact = availableBeds - severeCasesByRequestedTimeImpact;
   impact.hospitalBedsByRequestedTime = bedsByRequestedTimeImpact;
 
-  const bedsByRequestedTimeSevere = discardDecimal(
-    availableBeds - severeCasesByRequestedTimeSevere
-  );
+  const bedsByRequestedTimeSevere = availableBeds - severeCasesByRequestedTimeSevere;
   severeImpact.hospitalBedsByRequestedTime = bedsByRequestedTimeSevere;
 
   const casesForICUByRequestedTimeImpact = discardDecimal(0.05 * infectionsByRequestedTimeImpact);
