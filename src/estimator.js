@@ -1,10 +1,6 @@
 
-
-
 function discardDecimal(value) {
-
   return Math.floor(value);
-
 }
 
 function calculateDaysToElapse(periodType, timeToElapse) {
@@ -23,100 +19,85 @@ function calculateDaysToElapse(periodType, timeToElapse) {
       toReturn = timeToElapse * 7;
       break;
 
+    default:
+      break;
   }
 
 
   return toReturn;
-
 }
-
-
-/*
-// input format
-
-{
-region: {
-  name: "Africa",
-  avgAge: 19.7,
-  avgDailyIncomeInUSD: 5,
-  avgDailyIncomePopulation: 0.71
-},
-periodType: "days",
-timeToElapse: 58,
-reportedCases: 674,
-population: 66622705,
-totalHospitalBeds: 1380614
-}
-*/
 
 const covid19ImpactEstimator = (data) => {
-
-  let toReturn = {
-    data: data,
+  const toReturn = {
+    data
     // impact: {},
     // severeImpact: {}
   };
 
-  let impact = {};
-  let severeImpact = {};
+  const impact = {};
+  const severeImpact = {};
 
-  let reportedCases  = data['reportedCases'];
+  const { reportedCases } = data;
 
-  let currentlyInfectedImpact =  discardDecimal(reportedCases * 10);
-  impact['currentlyInfected'] = currentlyInfectedImpact;
-  let currentlyInfectedSevere = discardDecimal(reportedCases * 50);
-  severeImpact['currentlyInfected'] = currentlyInfectedSevere;
+  const currentlyInfectedImpact = discardDecimal(reportedCases * 10);
+  impact.currentlyInfected = currentlyInfectedImpact;
+  const currentlyInfectedSevere = discardDecimal(reportedCases * 50);
+  severeImpact.currentlyInfected = currentlyInfectedSevere;
 
-  let daysToElapse = calculateDaysToElapse(data['periodType'],data['timeToElapse']);
+  const daysToElapse = calculateDaysToElapse(data.periodType, data.timeToElapse);
 
-  let factor = discardDecimal(Math.pow( 2, discardDecimal(daysToElapse/3)));
-  let infectionsByRequestedTimeImpact = currentlyInfectedImpact * factor;
-  impact['infectionsByRequestedTime'] = infectionsByRequestedTimeImpact;
+  const factor = discardDecimal(2 ** discardDecimal(daysToElapse / 3));
+  const infectionsByRequestedTimeImpact = currentlyInfectedImpact * factor;
+  impact.infectionsByRequestedTime = infectionsByRequestedTimeImpact;
 
-  let infectionsByRequestedTimeSevere = currentlyInfectedSevere * factor;
-  severeImpact['infectionsByRequestedTime'] = infectionsByRequestedTimeSevere;
+  const infectionsByRequestedTimeSevere = currentlyInfectedSevere * factor;
+  severeImpact.infectionsByRequestedTime = infectionsByRequestedTimeSevere;
 
-  let severeCasesByRequestedTimeImpact = discardDecimal( 15/100 * infectionsByRequestedTimeImpact);
-  impact['severeCasesByRequestedTime'] = severeCasesByRequestedTimeImpact;
-  let severeCasesByRequestedTimeSevere = discardDecimal(15/100 * infectionsByRequestedTimeSevere);
-  severeImpact['severeCasesByRequestedTime'] = severeCasesByRequestedTimeSevere;
+  const severeCasesByRequestedTimeImpact = discardDecimal(0.15 * infectionsByRequestedTimeImpact);
+  impact.severeCasesByRequestedTime = severeCasesByRequestedTimeImpact;
+  const severeCasesByRequestedTimeSevere = discardDecimal(0.15 * infectionsByRequestedTimeSevere);
+  severeImpact.severeCasesByRequestedTime = severeCasesByRequestedTimeSevere;
 
-  let totalHospitalBeds = data['totalHospitalBeds'];
-  let availableHospitalBeds = discardDecimal( 35/100 * totalHospitalBeds);
+  const { totalHospitalBeds } = data;
+  const availableBeds = discardDecimal(0.35 * totalHospitalBeds);
 
-  let hospitalBedsByRequestedTimeImpact = availableHospitalBeds - severeCasesByRequestedTimeImpact;
-  impact['hospitalBedsByRequestedTime'] = hospitalBedsByRequestedTimeImpact;
-  let hospitalBedsByRequestedTimeSevere = availableHospitalBeds - severeCasesByRequestedTimeSevere;
-  severeImpact['hospitalBedsByRequestedTime'] = hospitalBedsByRequestedTimeSevere;
+  const bedsByRequestedTimeImpact = availableBeds - severeCasesByRequestedTimeImpact;
 
-  let casesForICUByRequestedTimeImpact = discardDecimal(5/100*infectionsByRequestedTimeImpact);
-  impact['casesForICUByRequestedTime'] = casesForICUByRequestedTimeImpact;
-  let casesForICUByRequestedTimeSevere = discardDecimal( 5/100*infectionsByRequestedTimeSevere);
-  severeImpact['casesForICUByRequestedTime'] = casesForICUByRequestedTimeSevere;
+  impact.hospitalBedsByRequestedTime = bedsByRequestedTimeImpact;
+  const bedsByRequestedTimeSevere = availableBeds - severeCasesByRequestedTimeSevere;
+  severeImpact.hospitalBedsByRequestedTime = bedsByRequestedTimeSevere;
 
-  let casesForVentilatorsByRequestedTimeImpact = discardDecimal( 2/100*infectionsByRequestedTimeImpact);
-  impact['casesForVentilatorsByRequestedTime'] = casesForVentilatorsByRequestedTimeImpact;
-  let casesForVentilatorsByRequestedTimeSevere = discardDecimal( 2/100*infectionsByRequestedTimeSevere);
-  severeImpact['casesForVentilatorsByRequestedTime'] = casesForVentilatorsByRequestedTimeSevere;
+  const casesForICUByRequestedTimeImpact = discardDecimal(0.05 * infectionsByRequestedTimeImpact);
+  impact.casesForICUByRequestedTime = casesForICUByRequestedTimeImpact;
+  const casesForICUByRequestedTimeSevere = discardDecimal(0.05 * infectionsByRequestedTimeSevere);
+  severeImpact.casesForICUByRequestedTime = casesForICUByRequestedTimeSevere;
 
-  let avgDailyIncomePopulation = data['region']['avgDailyIncomePopulation'];
-  let avgDailyIncomeInUSD = data['region']['avgDailyIncomeInUSD'];
+  const casesForVentilatorsImpact = discardDecimal(0.02 * infectionsByRequestedTimeImpact);
+  impact.casesForVentilatorsByRequestedTime = casesForVentilatorsImpact;
+  const casesForVentilatorsSevere = discardDecimal(0.02 * infectionsByRequestedTimeSevere);
+  severeImpact.casesForVentilatorsByRequestedTime = casesForVentilatorsSevere;
 
-  let dollarsInFlightImpact =  discardDecimal(
-    (infectionsByRequestedTimeImpact * avgDailyIncomePopulation * avgDailyIncomeInUSD) / daysToElapse
+  const { avgDailyIncomePopulation } = data.region;
+  const { avgDailyIncomeInUSD } = data.region;
+
+  const dollarsInFlightImpact = discardDecimal(
+    (
+      infectionsByRequestedTimeImpact * avgDailyIncomePopulation * avgDailyIncomeInUSD
+    ) / daysToElapse
   );
-  impact['dollarsInFlight'] = dollarsInFlightImpact;
+  impact.dollarsInFlight = dollarsInFlightImpact;
 
-  let dollarsInFlightSevere = discardDecimal(
-    (infectionsByRequestedTimeSevere * avgDailyIncomePopulation * avgDailyIncomeInUSD) / daysToElapse
+  const dollarsInFlightSevere = discardDecimal(
+    (
+      infectionsByRequestedTimeSevere * avgDailyIncomePopulation * avgDailyIncomeInUSD
+    ) / daysToElapse
   );
-  severeImpact['dollarsInFlight'] = dollarsInFlightSevere;
+  severeImpact.dollarsInFlight = dollarsInFlightSevere;
 
-  toReturn['impact'] = impact;
-  toReturn['severeImpact'] = severeImpact;
+  toReturn.impact = impact;
+  toReturn.severeImpact = severeImpact;
 
   return toReturn;
-
 };
 
 export default covid19ImpactEstimator;
