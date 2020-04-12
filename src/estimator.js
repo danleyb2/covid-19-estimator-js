@@ -64,9 +64,11 @@ const covid19ImpactEstimator = (data) => {
   const bedsByRequestedTimeImpact = discardDecimal(
     availableBeds - severeCasesByRequestedTimeImpact
   );
-
   impact.hospitalBedsByRequestedTime = bedsByRequestedTimeImpact;
-  const bedsByRequestedTimeSevere = availableBeds - severeCasesByRequestedTimeSevere;
+
+  const bedsByRequestedTimeSevere = discardDecimal(
+    availableBeds - severeCasesByRequestedTimeSevere
+  );
   severeImpact.hospitalBedsByRequestedTime = bedsByRequestedTimeSevere;
 
   const casesForICUByRequestedTimeImpact = discardDecimal(0.05 * infectionsByRequestedTimeImpact);
