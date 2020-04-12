@@ -1,7 +1,7 @@
 {
   "name": "covid-19-estimator-js",
   "version": "1.0.0",
-  "repository": "git@github.com:BuildforSDG-Cohort1-Assessment/covid-19-estimator-js.git",
+  "repository": "git@github.com:danleyb2/covid-19-estimator-js.git",
   "license": "MIT",
   "private": false,
   "scripts": {
