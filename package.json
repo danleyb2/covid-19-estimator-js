@@ -1,9 +1,10 @@
 {
-  "name": "covid-19-estimator-js",
-  "version": "1.0.0",
+  "name": "@danleyb2/covid19estimator",
+  "version": "0.0.1",
   "repository": "git@github.com:danleyb2/covid-19-estimator-js.git",
   "license": "MIT",
   "private": false,
+  "main": "src/estimator.js",
   "scripts": {
     "lint": "eslint ./src/"
   },
