@@ -1,6 +1,6 @@
 {
   "name": "@danleyb2/covid19estimator",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "repository": "git@github.com:danleyb2/covid-19-estimator-js.git",
   "license": "MIT",
   "private": false,
@@ -11,6 +11,9 @@
   "dependencies": {
     "on-covid-19": "^0.1.3"
   },
+  "files": [
+    "src/estimator.js"
+  ],
   "devDependencies": {
     "@babel/core": "^7.9.0",
     "@babel/preset-env": "^7.9.0",
