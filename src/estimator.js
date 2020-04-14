@@ -8,9 +8,7 @@ class Estimator {
       data.timeToElapse
     );
 
-    this.factor = Estimator.discardDecimal(
-      2 ** Estimator.discardDecimal(this.daysToElapse / 3)
-    );
+    this.factor = 2 ** Estimator.discardDecimal(this.daysToElapse / 3);
 
     this.totalHospitalBeds = data.totalHospitalBeds;
 
