@@ -1,6 +1,6 @@
 {
   "name": "@danleyb2/covid19estimator",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "repository": "git@github.com:danleyb2/covid-19-estimator-js.git",
   "license": "MIT",
   "private": false,
